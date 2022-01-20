@@ -3,13 +3,14 @@ package com.github.coderodde.text.autocomplete;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Queue;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * This class implements a prefix tree (https://en.wikipedia.org/wiki/Trie).
@@ -18,7 +19,7 @@ import java.util.TreeSet;
  * @version 1.6 (Jan 19, 2022)
  * @since 1.6 (Jan 19, 2022)
  */
-public class PrefixTree {
+public class PrefixTree implements Iterable<String> {
 
     private static final class Node {
         Map<Character, Node> childMap;
@@ -178,6 +179,92 @@ public class PrefixTree {
         return autocompleteStrings;
     }
     
+    @Override
+    public Iterator<String> iterator() {
+        return new PrefixTreeIterator();
+    }
+    
+    private final class PrefixTreeIterator implements Iterator<String> {
+
+        private int iterated;
+        private final Deque<Character> characterStack = new ArrayDeque<>();
+        
+        private final Deque<Iterator<Map.Entry<Character, Node>>> 
+                mapEntryIteratorDeque = new ArrayDeque<>();
+        
+        
+        PrefixTreeIterator() {
+            buildStack();
+        }
+        
+        private void buildStack() {
+            Node node = PrefixTree.this.root;
+            
+            while (node.childMap != null) {
+                Map.Entry<Character, Node> nextMapEntry = 
+                        node.childMap.entrySet().iterator().next();
+                
+                characterStack.addLast(nextMapEntry.getKey());
+                mapEntryIteratorDeque.addLast(
+                        nextMapEntry
+                                .getValue()
+                                .childMap
+                                .entrySet()
+                                .iterator());
+                
+                node = nextMapEntry.getValue();
+            }
+        }
+        
+        private void completeStack() {
+            
+        }
+        
+        @Override
+        public boolean hasNext() {
+            return iterated < PrefixTree.this.size;
+        }
+
+        @Override
+        public String next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("No more strings to iterate.");
+            }
+            
+            Iterator<Map.Entry<Character, Node>> topmostMapEntryIterator = 
+                    mapEntryIteratorDeque.getLast();
+            
+            if (topmostMapEntryIterator.hasNext()) {
+                Map.Entry<Character, Node> nextMapEntry = 
+                        topmostMapEntryIterator.next();
+                
+                StringBuilder sb = new StringBuilder(characterStack.size());
+                
+                for (Character c : characterStack) {
+                    sb.append(c);
+                }
+                
+                characterStack.removeLast();
+                characterStack.addLast(nextMapEntry.getKey());
+                return sb.toString();
+            }
+            
+            while (!mapEntryIteratorDeque.isEmpty() && 
+                   !mapEntryIteratorDeque.getLast().hasNext()) {
+                
+                mapEntryIteratorDeque.removeLast();
+                characterStack.removeLast();
+            }
+            
+            if (mapEntryIteratorDeque.isEmpty()) {
+                throw new NoSuchElementException("No more strings to iterate.");
+            }
+            
+            buildStack();
+            return next();
+        }
+    }
+    
     private Node getPrefixNode(String s) {
         Node node = root;
         
@@ -190,11 +277,5 @@ public class PrefixTree {
         }
         
         return node;
-    }
-    
-    private static final class NodeHolder {
-        Node node;
-        StringBuilder text;
-        
     }
 }
