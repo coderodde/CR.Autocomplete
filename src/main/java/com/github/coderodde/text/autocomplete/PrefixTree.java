@@ -1,4 +1,4 @@
-package com.stackexchange.codereview.text.autocomplete;
+package com.github.coderodde.text.autocomplete;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -129,10 +129,10 @@ public class PrefixTree {
         return false;
     }
     
-    public List<String> autocomplete(String s) {
-        Objects.requireNonNull(s, "The input string is null.");
+    public List<String> autocomplete(String prefix) {
+        Objects.requireNonNull(prefix, "The input string is null.");
         
-        Node prefixNodeEnd = getPrefixNode(s);
+        Node prefixNodeEnd = getPrefixNode(prefix);
         
         if (prefixNodeEnd == null) {
             return Collections.<String>emptyList();
@@ -142,8 +142,13 @@ public class PrefixTree {
         Queue<Node> nodeQueue = new ArrayDeque<>();
         Queue<StringBuilder> substringQueue = new ArrayDeque<>();
         
+        if (prefixNodeEnd == root && root.representsString) {
+            // Special case. The prefix is an empty string:
+            autocompleteStrings.add("");
+        }
+        
         nodeQueue.add(prefixNodeEnd);
-        substringQueue.add(new StringBuilder(s));
+        substringQueue.add(new StringBuilder(prefix));
         
         while (!nodeQueue.isEmpty()) {
             Node currentNode = nodeQueue.remove();

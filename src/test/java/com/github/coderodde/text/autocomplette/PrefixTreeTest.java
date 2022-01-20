@@ -1,5 +1,6 @@
-package com.stackexchange.codereview.text.autocomplete;
+package com.github.coderodde.text.autocomplette;
 
+import com.github.coderodde.text.autocomplete.PrefixTree;
 import java.util.Collections;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
@@ -118,5 +119,38 @@ public class PrefixTreeTest {
         pt.add("aaa");
         strings = pt.autocomplete("aaab");
         assertTrue(strings.isEmpty());
+    }
+    
+    @Test
+    public void emptyString() {
+        PrefixTree pt = new PrefixTree();
+        
+        pt.add("aa");
+        pt.add("ab");
+        
+        assertFalse(pt.contains(""));
+        assertTrue(pt.add(""));
+        assertFalse(pt.add(""));
+        assertTrue(pt.contains(""));
+        
+        pt.remove("");
+        assertFalse(pt.contains(""));
+        
+        List<String> list = pt.autocomplete("");
+        
+        assertEquals(2, list.size());
+        Collections.<String>sort(list);
+        
+        assertEquals("aa", list.get(0));
+        assertEquals("ab", list.get(1));
+        
+        pt.add("");
+        
+        list = pt.autocomplete("");
+        Collections.<String>sort(list);
+        
+        assertEquals("", list.get(0));
+        assertEquals("aa", list.get(1));
+        assertEquals("ab", list.get(2));
     }
 }
