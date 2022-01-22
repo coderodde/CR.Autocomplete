@@ -44,27 +44,9 @@ public class PrefixTree implements Iterable<String> {
     private int size;
     
     public boolean add(String s) {
-        Objects.requireNonNull(s, "The input string is null.");
-        
-        if (root.childMap == null) {
-            Node node = root;
-            
-            for (char ch : s.toCharArray()) {
-                node.childMap = new HashMap<>();
-                Node nextNode = new Node();
-                node.childMap.put(ch, nextNode);
-                nextNode.parent = node;
-                node = nextNode;
-            }
-            
-            node.representsString = true;
-            size = 1;
-            return true;
-        }
-        
+        Objects.requireNonNull(s, "The input string is null.");   
         Node node = root;
-        
-        // Here, the tree is not empty!
+       
         for (char ch : s.toCharArray()) {
             if (node.childMap == null) {
                 node.childMap = new HashMap<>();
@@ -151,10 +133,14 @@ public class PrefixTree implements Iterable<String> {
         Queue<Node> nodeQueue = new ArrayDeque<>();
         Queue<StringBuilder> substringQueue = new ArrayDeque<>();
         
-        if (prefixNodeEnd == root && root.representsString) {
-            // Special case. The prefix is an empty string:
-            autocompleteStrings.add("");
+        if (prefixNodeEnd.representsString) {
+            autocompleteStrings.add(prefix);
         }
+        
+//        if (prefixNodeEnd == root && root.representsString) {
+//            // Special case. The prefix is an empty string:
+//            autocompleteStrings.add("");
+//        }
         
         nodeQueue.add(prefixNodeEnd);
         substringQueue.add(new StringBuilder(prefix));

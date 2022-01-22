@@ -7,9 +7,9 @@ import java.util.Scanner;
 
 public class Demo {
     
-    private static final int NUMBER_OF_STRINGS_TO_GENERATE = 10;
-    private static final int MAXIMUM_STRING_LENGTH = 4;
-    private static final String AUTOCOMPLETE_STRING = "0";
+    private static final int NUMBER_OF_STRINGS_TO_GENERATE = 1000;
+    private static final int MAXIMUM_STRING_LENGTH = 15;
+    private static final String AUTOCOMPLETE_STRING = "1";
 
     public static void main(String[] args) {
         if (args.length > 0 && args[0].trim().equals("benchmark")) {
@@ -51,7 +51,7 @@ public class Demo {
             System.out.println("<<< Benchmarking... >>>");
         }
             
-        Random random = new Random(123L);
+        Random random = new Random(1234L);
         
         String[] strings = getStrings(NUMBER_OF_STRINGS_TO_GENERATE, random);
         String[] queryString = getQueryString(strings, random);
@@ -61,7 +61,7 @@ public class Demo {
         AutocompleteSystem autocompleteSystem = new AutocompleteSystem();
         
         long prefixTreeDuration = 0L;
-        long autocompletionSystemDuratino = 0L;
+        long autocompletionSystemDuration = 0L;
         long start = System.currentTimeMillis();
         
         for (String s : strings) {
@@ -92,7 +92,7 @@ public class Demo {
         
         start = System.currentTimeMillis();
         
-        for (int i = 0; i < queryString.length; i += 2) {
+        for (int i = 0; i < queryString.length / 2; i += 2) {
             prefixTree.remove(queryString[i]);
         }
         
@@ -132,7 +132,7 @@ public class Demo {
         }
         
         end = System.currentTimeMillis();
-        autocompletionSystemDuratino += end - start;
+        autocompletionSystemDuration += end - start;
         
         if (printStatistics) {
             System.out.println("AutocompleteSystem.add() in " + (end - start) 
@@ -146,7 +146,7 @@ public class Demo {
         }
         
         end = System.currentTimeMillis();
-        autocompletionSystemDuratino += end - start;
+        autocompletionSystemDuration += end - start;
         
         if (printStatistics) {
             System.out.println("AutocompleteSystem.contains() in " 
@@ -156,12 +156,12 @@ public class Demo {
         
         start = System.currentTimeMillis();
         
-        for (int i = 0; i < queryString.length; i += 2) {
+        for (int i = 0; i < queryString.length / 2; i += 2) {
             autocompleteSystem.remove(queryString[i]);
         }
         
         end = System.currentTimeMillis();
-        autocompletionSystemDuratino += end - start;
+        autocompletionSystemDuration += end - start;
         
         if (printStatistics) {
             System.out.println("AutocompleteSystem.remove() in " 
@@ -175,7 +175,7 @@ public class Demo {
                 autocompleteSystem.autocomplete(AUTOCOMPLETE_STRING);
         
         end = System.currentTimeMillis();
-        autocompletionSystemDuratino += end - start;
+        autocompletionSystemDuration += end - start;
         
         Collections.sort(autocompleteSystemCompletionStrings);
         
@@ -184,7 +184,7 @@ public class Demo {
                     + (end - start) + " ms.");
             
             System.out.println("AutocompleteSystem total duration: " + 
-                    autocompletionSystemDuratino + " ms.");
+                    autocompletionSystemDuration + " ms.");
             
             System.out.println();
             
