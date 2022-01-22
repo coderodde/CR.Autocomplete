@@ -109,19 +109,27 @@ public class PrefixTree implements Iterable<String> {
             node.representsString = false;
             size--;
             
-            int charIndex = s.length() - 1;
+            if (node.childMap != null) {
+                return true;
+            }
             
-            if (node.childMap == null) {
-                node = node.parent;
-                
-                while (node != root && node.childMap.size() == 1) {
-                    Node nextNode = node.parent;
-                    node.childMap = null;
-                    node = nextNode;
-                    charIndex--;
+            int charIndex = s.length() - 1;
+            node = node.parent;
+            
+            while (node != null) {
+                if (node.representsString) {
+                    node.childMap.remove(s.charAt(charIndex));
+                    return true;
                 }
                 
-                node.childMap.remove(s.charAt(charIndex));
+                Node nextNode = node.parent;
+                node.childMap.remove(s.charAt(charIndex--));
+                
+                if (node.childMap.isEmpty()) {
+                    node.childMap = null;
+                }
+                
+                node = nextNode;
             }
             
             return true;
