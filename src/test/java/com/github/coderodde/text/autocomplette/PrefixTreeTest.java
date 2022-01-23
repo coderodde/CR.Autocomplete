@@ -8,14 +8,20 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import org.junit.Before;
 import org.junit.Test;
 
 public class PrefixTreeTest {
     
+    private final PrefixTree pt = new PrefixTree();
+    
+    @Before
+    public void before() {
+        pt.clear();
+    }
+    
     @Test
     public void addAndContainsString() {
-        PrefixTree pt = new PrefixTree();
-        
         assertFalse(pt.contains("in"));
         assertFalse(pt.contains("inn"));
         assertFalse(pt.contains("ink"));
@@ -44,8 +50,6 @@ public class PrefixTreeTest {
     
     @Test
     public void remove() {
-        PrefixTree pt = new PrefixTree();
-        
         assertFalse(pt.remove("aa"));
         pt.add("aa");
         assertTrue(pt.remove("aa"));
@@ -80,8 +84,6 @@ public class PrefixTreeTest {
     
     @Test
     public void size() {
-        PrefixTree pt = new PrefixTree();
-        
         assertEquals(0, pt.size());
         
         pt.add("a");
@@ -101,8 +103,6 @@ public class PrefixTreeTest {
     
     @Test
     public void testAutocomplete() {
-        PrefixTree pt = new PrefixTree();
-        
         pt.add("aaaa");
         pt.add("bbbb");
         pt.add("bbxs");
@@ -125,8 +125,6 @@ public class PrefixTreeTest {
     
     @Test
     public void emptyString() {
-        PrefixTree pt = new PrefixTree();
-        
         pt.add("aa");
         pt.add("ab");
         
@@ -157,8 +155,6 @@ public class PrefixTreeTest {
     }
     
     public void removeBug2() {
-        PrefixTree pt = new PrefixTree();
-        
         pt.add("");
         pt.add("000");
         pt.add("0");
@@ -184,7 +180,6 @@ public class PrefixTreeTest {
                             "00",
                             "111"};
         
-        PrefixTree pt = new PrefixTree();
         Set<String> set = new HashSet();
         
         for (String s : strings) {
@@ -211,4 +206,29 @@ public class PrefixTreeTest {
         System.out.println(pt.autocomplete(""));
         System.out.println(set);
     }
+    
+    @Test
+    public void removBug3() {
+        pt.add("0");
+        pt.add("1");
+        pt.add("00");
+        pt.add("11");
+        pt.add("110");
+        pt.add("0110");
+        
+        //pt.remove("0110");
+//        pt.remove("0");
+        pt.remove("110");
+        
+        pt.clear();
+        
+        pt.add("1101101010");
+        pt.add("110101001");
+        
+        pt.remove("1101101010");
+        System.out.println(""
+                + "");
+    }
+    
+    
 }

@@ -88,10 +88,10 @@ public class PrefixTree implements Iterable<String> {
         }
         
         if (node.representsString) {
-            node.representsString = false;
             size--;
             
             if (node.childMap != null) {
+                node.representsString = false;
                 return true;
             }
             
@@ -99,19 +99,19 @@ public class PrefixTree implements Iterable<String> {
             node = node.parent;
             
             while (node != null) {
-                if (node.representsString) {
-                    node.childMap.remove(s.charAt(charIndex));
-                    return true;
-                }
-                
-                Node nextNode = node.parent;
-                node.childMap.remove(s.charAt(charIndex--));
+                node.childMap.remove(s.charAt(charIndex));
                 
                 if (node.childMap.isEmpty()) {
                     node.childMap = null;
                 }
                 
-                node = nextNode;
+                if (node.representsString) {
+                    return true;
+                }
+                
+                charIndex--;
+                node = node.parent;
+                return true;
             }
             
             return true;
@@ -133,15 +133,6 @@ public class PrefixTree implements Iterable<String> {
         Queue<Node> nodeQueue = new ArrayDeque<>();
         Queue<StringBuilder> substringQueue = new ArrayDeque<>();
         
-        if (prefixNodeEnd.representsString) {
-            autocompleteStrings.add(prefix);
-        }
-        
-//        if (prefixNodeEnd == root && root.representsString) {
-//            // Special case. The prefix is an empty string:
-//            autocompleteStrings.add("");
-//        }
-        
         nodeQueue.add(prefixNodeEnd);
         substringQueue.add(new StringBuilder(prefix));
         
@@ -149,7 +140,12 @@ public class PrefixTree implements Iterable<String> {
             Node currentNode = nodeQueue.remove();
             StringBuilder currentStringBuilder = substringQueue.remove();
             
+            if (currentNode.representsString) {
+                autocompleteStrings.add(currentStringBuilder.toString());
+            }
+            
             if (currentNode.childMap == null) {
+                // No need to expand 'currentNode':
                 continue;
             }
             
@@ -163,10 +159,6 @@ public class PrefixTree implements Iterable<String> {
                 
                 nodeQueue.add(node);
                 substringQueue.add(stringBuilder);
-                
-                if (node.representsString) {
-                    autocompleteStrings.add(stringBuilder.toString());
-                }
             }
         }
         

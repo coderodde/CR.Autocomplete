@@ -7,8 +7,8 @@ import java.util.Scanner;
 
 public class Demo {
     
-    private static final int NUMBER_OF_STRINGS_TO_GENERATE = 1000;
-    private static final int MAXIMUM_STRING_LENGTH = 15;
+    private static final int NUMBER_OF_STRINGS_TO_GENERATE = 10_000;
+    private static final int MAXIMUM_STRING_LENGTH = 10;
     private static final String AUTOCOMPLETE_STRING = "1";
 
     public static void main(String[] args) {
@@ -51,11 +51,13 @@ public class Demo {
             System.out.println("<<< Benchmarking... >>>");
         }
             
-        Random random = new Random(1234L);
+        Random random = new Random(1255L);
         
         String[] strings = getStrings(NUMBER_OF_STRINGS_TO_GENERATE, random);
-        String[] queryString = getQueryString(strings, random);
-        shuffle(queryString, random);
+        String[] queryStrings = getQueryStrings(strings, 4, random);
+        shuffle(queryStrings, random);
+        debugPrefixTree();
+        System.exit(0);
         
         PrefixTree prefixTree = new PrefixTree();
         AutocompleteSystem autocompleteSystem = new AutocompleteSystem();
@@ -73,11 +75,12 @@ public class Demo {
         
         if (printStatistics) {
             System.out.println("PrefixTree.add() in " + (end - start) + " ms.");
+            System.out.println("PrefixTree.size() = " + prefixTree.size());
         }
         
         start = System.currentTimeMillis();
         
-        for (String s : queryString) {
+        for (String s : queryStrings) {
             prefixTree.contains(s);
         }
         
@@ -92,8 +95,8 @@ public class Demo {
         
         start = System.currentTimeMillis();
         
-        for (int i = 0; i < queryString.length / 2; i += 2) {
-            prefixTree.remove(queryString[i]);
+        for (int i = 0; i < queryStrings.length / 2; i += 2) {
+            prefixTree.remove(queryStrings[i]);
         }
         
         end = System.currentTimeMillis();
@@ -103,6 +106,8 @@ public class Demo {
             System.out.println("PrefixTree.remove() in " 
                     + (end - start) 
                     + " ms.");
+            
+            System.out.println("PrefixTree.size() = " + prefixTree.size());
         }
         
         start = System.currentTimeMillis();
@@ -137,11 +142,14 @@ public class Demo {
         if (printStatistics) {
             System.out.println("AutocompleteSystem.add() in " + (end - start) 
                     + " ms.");
+            
+            System.out.println("AutocompleteSystem.size() = " + 
+                    autocompleteSystem.size());
         }
         
         start = System.currentTimeMillis();
         
-        for (String s : queryString) {
+        for (String s : queryStrings) {
             autocompleteSystem.contains(s);
         }
         
@@ -156,8 +164,8 @@ public class Demo {
         
         start = System.currentTimeMillis();
         
-        for (int i = 0; i < queryString.length / 2; i += 2) {
-            autocompleteSystem.remove(queryString[i]);
+        for (int i = 0; i < queryStrings.length / 2; i += 2) {
+            autocompleteSystem.remove(queryStrings[i]);
         }
         
         end = System.currentTimeMillis();
@@ -167,6 +175,9 @@ public class Demo {
             System.out.println("AutocompleteSystem.remove() in " 
                     + (end - start) 
                     + " ms.");
+            
+            System.out.println("AutocompleteSystem.size() = " + 
+                    autocompleteSystem.size());
         }
         
         start = System.currentTimeMillis();
@@ -200,7 +211,14 @@ public class Demo {
         }
     }
     
-    private static String[] getQueryString(String[] strings, Random random) {
+    private static String[] getQueryStrings(String[] strings, Random random) {
+        return getQueryStrings(strings, MAXIMUM_STRING_LENGTH, random);
+    }
+    
+    private static String[] getQueryStrings(String[] strings, 
+                                            int maximumStringLength, 
+                                            Random random) {
+        
         String[] queryStrings = new String[strings.length];
         int index = 0;
         
@@ -209,7 +227,7 @@ public class Demo {
         }
         
         for (; index < strings.length; ++index) {
-            queryStrings[index] = generateString(random);
+            queryStrings[index] = generateString(maximumStringLength, random);
         }
         
         return queryStrings;
@@ -217,18 +235,26 @@ public class Demo {
     
     private static String[] 
         getStrings(int numberOfStringsRandom, Random random) {
+        return getStrings(numberOfStringsRandom, MAXIMUM_STRING_LENGTH, random);
+    }
+    
+    private static String[] 
+        getStrings(int numberOfStringsRandom, 
+                   int maximumStringLength, 
+                   Random random) {
             
         String[] strings = new String[numberOfStringsRandom];
         
         for (int i = 0; i < strings.length; ++i) {
-            strings[i] = generateString(random);
+            strings[i] = generateString(maximumStringLength, random);
         }
         
         return strings;
     }
     
-    private static String generateString(Random random) {
-        int stringLength = random.nextInt(MAXIMUM_STRING_LENGTH + 1);
+    private static String generateString(int maximumStringLength, 
+                                         Random random) {
+        int stringLength = random.nextInt(maximumStringLength + 1);
         StringBuilder sb = new StringBuilder(stringLength);
         
         for (int i = 0; i < stringLength; ++i) {
@@ -245,5 +271,68 @@ public class Demo {
             arr[i] = arr[j];
             arr[j] = s;
         }
+    }
+    
+    private static void debugPrefixTree() {
+        PrefixTree pt = new PrefixTree();
+        AutocompleteSystem as = new AutocompleteSystem();
+        Random random = new Random(1000L);
+        
+        String[] strings = getStrings(70, 4, random);
+        String[] queryStrings = getQueryStrings(strings, 4, random);
+        shuffle(strings, random);
+        
+        for (String s : strings) {
+            pt.add(s);
+            as.add(s);
+        }
+        
+        System.out.println("--- Before add() ---");
+        System.out.println("PrefixTree size: " + pt.size());
+        System.out.println("AutocompleteSystem size: " + as.size());
+        
+        int initialPrefixTreeSize = pt.size();
+        int initialAutocompleteSystemSize = as.size();
+        int numberOfRemovedStringsFromPrefixTree = 0;
+        int numberOfRemovedStringsFromAutocompleteSystem = 0;
+        
+        for (int i = 0; i < queryStrings.length; i += 2) {
+            System.out.print(i + ": ");
+            String s = queryStrings[i];
+            
+            boolean removedFromSystem = as.remove(s);
+            boolean removedFromTree = pt.remove(s);
+            
+            System.out.println(
+                    s + ": sys = " + removedFromSystem + ": tree = " 
+                            + removedFromTree);
+            
+            if (removedFromSystem) {
+                numberOfRemovedStringsFromAutocompleteSystem++;
+            }
+            
+            if (removedFromTree) {
+                numberOfRemovedStringsFromPrefixTree++;
+            }
+            
+            if (removedFromSystem != removedFromTree) {
+                System.out.println("Boom!");
+                return;
+            }
+        }
+        
+        System.out.println("--- After remove()");
+        System.out.println("PrefixTree size: " + pt.size());
+        System.out.println("AutocompleteSystem size: " + as.size());
+        
+        System.out.println(
+                "Removed from PrefixTree: "
+                        + numberOfRemovedStringsFromPrefixTree);
+        
+        System.out.println(
+                "Removed from AutocompleteSystem: " 
+                        + numberOfRemovedStringsFromAutocompleteSystem);
+        
+        
     }
 }

@@ -39,6 +39,10 @@ public class AutocompleteSystem implements Iterable<String> {
         
         return list;
     }
+    
+    public int size() {
+        return stringSet.size();
+    }
 
     @Override
     public Iterator<String> iterator() {
