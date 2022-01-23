@@ -3,6 +3,7 @@ package com.github.coderodde.text.autocomplette;
 import com.github.coderodde.text.autocomplete.PrefixTree;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import static org.junit.Assert.assertEquals;
@@ -208,27 +209,20 @@ public class PrefixTreeTest {
     }
     
     @Test
-    public void removBug3() {
+    public void iterator() {
         pt.add("0");
-        pt.add("1");
         pt.add("00");
-        pt.add("11");
-        pt.add("110");
-        pt.add("0110");
+        pt.add("01");
+        pt.add("000");
+        pt.add("0001");
+        pt.add("011");
         
-        //pt.remove("0110");
-//        pt.remove("0");
-        pt.remove("110");
+        Iterator<String> iter = pt.iterator();
         
-        pt.clear();
+        while (iter.hasNext()) {
+            System.out.println("yeah: " + iter.next());
+        }
         
-        pt.add("1101101010");
-        pt.add("110101001");
-        
-        pt.remove("1101101010");
-        System.out.println(""
-                + "");
+        System.out.println();
     }
-    
-    
 }

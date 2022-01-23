@@ -170,40 +170,31 @@ public class PrefixTree implements Iterable<String> {
         return new PrefixTreeIterator();
     }
     
+    private Node getPrefixNode(String s) {
+        Node node = root;
+        
+        for (int i = 0, len = s.length(); i < len; ++i) {
+            if (node == null || node.childMap == null) {
+                return null;
+            }
+            
+            node = node.childMap.get(s.charAt(i));
+        }
+        
+        return node;
+    }
+    
     private final class PrefixTreeIterator implements Iterator<String> {
 
         private int iterated;
-        private final Deque<Character> characterStack = new ArrayDeque<>();
-        
+        private final Deque<Character> characterDeque = new ArrayDeque<>();
         private final Deque<Iterator<Map.Entry<Character, Node>>> 
                 mapEntryIteratorDeque = new ArrayDeque<>();
         
-        
-        PrefixTreeIterator() {
-            buildStack();
-        }
-        
-        private void buildStack() {
-            Node node = PrefixTree.this.root;
-            
-            while (node.childMap != null) {
-                Map.Entry<Character, Node> nextMapEntry = 
-                        node.childMap.entrySet().iterator().next();
-                
-                characterStack.addLast(nextMapEntry.getKey());
-                mapEntryIteratorDeque.addLast(
-                        nextMapEntry
-                                .getValue()
-                                .childMap
-                                .entrySet()
-                                .iterator());
-                
-                node = nextMapEntry.getValue();
+        private PrefixTreeIterator() {
+            if (!PrefixTree.this.isEmpty()) {
+                initializeStacks();
             }
-        }
-        
-        private void completeStack() {
-            
         }
         
         @Override
@@ -217,51 +208,90 @@ public class PrefixTree implements Iterable<String> {
                 throw new NoSuchElementException("No more strings to iterate.");
             }
             
-            Iterator<Map.Entry<Character, Node>> topmostMapEntryIterator = 
-                    mapEntryIteratorDeque.getLast();
+            while (true) {
+                if (!mapEntryIteratorDeque.getLast().hasNext()) {
+                    completeStack();
+                }
+
+                Iterator<Map.Entry<Character, Node>> topmostIterator = 
+                        mapEntryIteratorDeque.getLast();
+
+                Map.Entry<Character, Node> mapEntry = topmostIterator.next();
+                
+                if (mapEntry.getValue().representsString) {
+                    iterated++;
+                    
+                    StringBuilder stringBuilder = 
+                            new StringBuilder(characterDeque.size());
+
+                    for (Character character : characterDeque) {
+                        stringBuilder.append(character);
+                    }
+
+                    return stringBuilder.toString();
+                }
+            }
+        }
+        
+        private void initializeStacks() {
+            Node node = root;
             
-            if (topmostMapEntryIterator.hasNext()) {
-                Map.Entry<Character, Node> nextMapEntry = 
-                        topmostMapEntryIterator.next();
-                
-                StringBuilder sb = new StringBuilder(characterStack.size());
-                
-                for (Character c : characterStack) {
-                    sb.append(c);
+            while (node != null) {
+                if (node.childMap == null) {
+                    return;
                 }
                 
-                characterStack.removeLast();
-                characterStack.addLast(nextMapEntry.getKey());
-                return sb.toString();
-            }
-            
-            while (!mapEntryIteratorDeque.isEmpty() && 
-                   !mapEntryIteratorDeque.getLast().hasNext()) {
+                Iterator<Map.Entry<Character, Node>> iterator = 
+                        node
+                        .childMap
+                        .entrySet()
+                        .iterator();
                 
+                Map.Entry<Character, Node> mapEntry = iterator.next();
+                mapEntryIteratorDeque.addLast(iterator);
+                characterDeque.addLast(mapEntry.getKey());
+                node = mapEntry.getValue();
+            }
+        }
+        
+        private void completeStack() {
+            while (!mapEntryIteratorDeque.isEmpty() 
+                    && !mapEntryIteratorDeque.getLast().hasNext()) {
                 mapEntryIteratorDeque.removeLast();
-                characterStack.removeLast();
+                characterDeque.removeLast();
             }
             
             if (mapEntryIteratorDeque.isEmpty()) {
-                throw new NoSuchElementException("No more strings to iterate.");
+                return;
             }
             
-            buildStack();
-            return next();
-        }
-    }
-    
-    private Node getPrefixNode(String s) {
-        Node node = root;
-        
-        for (int i = 0, len = s.length(); i < len; ++i) {
-            if (node == null || node.childMap == null) {
-                return null;
+            Map.Entry<Character, Node> mapEntry = 
+                    mapEntryIteratorDeque.getLast().next();
+            
+            if (mapEntry.getValue() == null) {
+                return;
             }
             
-            node = node.childMap.get(s.charAt(i));
+            mapEntryIteratorDeque.add(
+                    mapEntry
+                            .getValue()
+                            .childMap
+                            .entrySet()
+                            .iterator());
+            
+            characterDeque.add(mapEntry.getKey());
+            
+            Node node = mapEntry.getValue();
+            
+            while (node.childMap != null) {
+                Iterator<Map.Entry<Character, Node>> iterator = 
+                        node.childMap.entrySet().iterator();
+                
+                mapEntry = iterator.next();
+                mapEntryIteratorDeque.addLast(iterator);
+                characterDeque.addLast(mapEntry.getKey());
+                node = mapEntry.getValue();
+            }
         }
-        
-        return node;
     }
 }
