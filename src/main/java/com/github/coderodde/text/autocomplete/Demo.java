@@ -7,9 +7,9 @@ import java.util.Scanner;
 
 public class Demo {
     
-    private static final int NUMBER_OF_STRINGS_TO_GENERATE = 10_000;
-    private static final int MAXIMUM_STRING_LENGTH = 10;
-    private static final String AUTOCOMPLETE_STRING = "1";
+    private static final int NUMBER_OF_STRINGS_TO_GENERATE = 5_000_000;
+    private static final int MAXIMUM_STRING_LENGTH = 20;
+    private static final String AUTOCOMPLETE_STRING = "101";
 
     public static void main(String[] args) {
         if (args.length > 0 && args[0].trim().equals("benchmark")) {
@@ -56,8 +56,6 @@ public class Demo {
         String[] strings = getStrings(NUMBER_OF_STRINGS_TO_GENERATE, random);
         String[] queryStrings = getQueryStrings(strings, 4, random);
         shuffle(queryStrings, random);
-        debugPrefixTree();
-        System.exit(0);
         
         PrefixTree prefixTree = new PrefixTree();
         AutocompleteSystem autocompleteSystem = new AutocompleteSystem();
@@ -271,68 +269,5 @@ public class Demo {
             arr[i] = arr[j];
             arr[j] = s;
         }
-    }
-    
-    private static void debugPrefixTree() {
-        PrefixTree pt = new PrefixTree();
-        AutocompleteSystem as = new AutocompleteSystem();
-        Random random = new Random(1000L);
-        
-        String[] strings = getStrings(70, 4, random);
-        String[] queryStrings = getQueryStrings(strings, 4, random);
-        shuffle(strings, random);
-        
-        for (String s : strings) {
-            pt.add(s);
-            as.add(s);
-        }
-        
-        System.out.println("--- Before add() ---");
-        System.out.println("PrefixTree size: " + pt.size());
-        System.out.println("AutocompleteSystem size: " + as.size());
-        
-        int initialPrefixTreeSize = pt.size();
-        int initialAutocompleteSystemSize = as.size();
-        int numberOfRemovedStringsFromPrefixTree = 0;
-        int numberOfRemovedStringsFromAutocompleteSystem = 0;
-        
-        for (int i = 0; i < queryStrings.length; i += 2) {
-            System.out.print(i + ": ");
-            String s = queryStrings[i];
-            
-            boolean removedFromSystem = as.remove(s);
-            boolean removedFromTree = pt.remove(s);
-            
-            System.out.println(
-                    s + ": sys = " + removedFromSystem + ": tree = " 
-                            + removedFromTree);
-            
-            if (removedFromSystem) {
-                numberOfRemovedStringsFromAutocompleteSystem++;
-            }
-            
-            if (removedFromTree) {
-                numberOfRemovedStringsFromPrefixTree++;
-            }
-            
-            if (removedFromSystem != removedFromTree) {
-                System.out.println("Boom!");
-                return;
-            }
-        }
-        
-        System.out.println("--- After remove()");
-        System.out.println("PrefixTree size: " + pt.size());
-        System.out.println("AutocompleteSystem size: " + as.size());
-        
-        System.out.println(
-                "Removed from PrefixTree: "
-                        + numberOfRemovedStringsFromPrefixTree);
-        
-        System.out.println(
-                "Removed from AutocompleteSystem: " 
-                        + numberOfRemovedStringsFromAutocompleteSystem);
-        
-        
     }
 }
