@@ -3,6 +3,7 @@ package com.github.coderodde.text.autocomplete;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -26,6 +27,10 @@ public class PrefixTree implements Iterable<String> {
         Node parent;
         boolean representsString;
     }
+    
+    private final Node root = new Node();
+    private int size;
+    private int modCount;
 
     public int size() {
         return size;
@@ -38,10 +43,8 @@ public class PrefixTree implements Iterable<String> {
     public void clear() {
         root.childMap = null;
         size = 0;
+        modCount++;
     }
-    
-    private final Node root = new Node();
-    private int size;
     
     public boolean add(String s) {
         Objects.requireNonNull(s, "The input string is null.");   
@@ -70,6 +73,7 @@ public class PrefixTree implements Iterable<String> {
         
         node.representsString = true;
         size++;
+        modCount++;
         return true;
     }
     
@@ -89,6 +93,7 @@ public class PrefixTree implements Iterable<String> {
         
         if (node.representsString) {
             size--;
+            modCount++;
             
             if (node.childMap != null) {
                 node.representsString = false;
@@ -187,6 +192,7 @@ public class PrefixTree implements Iterable<String> {
     private final class PrefixTreeIterator implements Iterator<String> {
 
         private int iterated;
+        private final int expectedModCount = PrefixTree.this.modCount;
         private final Deque<Node> nodeDeque = new ArrayDeque<>();
         private final Deque<Character> characterDeque = new ArrayDeque<>();
         private final Deque<Iterator<Map.Entry<Character, Node>>> 
@@ -205,6 +211,8 @@ public class PrefixTree implements Iterable<String> {
 
         @Override
         public String next() {
+            checkForComodification();
+            
             if (!hasNext()) {
                 throw new NoSuchElementException("No more strings to iterate.");
             }
@@ -214,24 +222,44 @@ public class PrefixTree implements Iterable<String> {
                     completeStack();
                 }
 
-                Iterator<Map.Entry<Character, Node>> topmostIterator = 
-                        mapEntryIteratorDeque.getLast();
-
-                Map.Entry<Character, Node> mapEntry = topmostIterator.next();
+                Node node = nodeDeque.getLast();
                 
-                if (mapEntry.getValue().representsString) {
-                    iterated++;
+                if (node.representsString) {
+                    StringBuilder stringBuilder = new StringBuilder();
                     
-                    StringBuilder stringBuilder = 
-                            new StringBuilder(characterDeque.size());
-
                     for (Character character : characterDeque) {
                         stringBuilder.append(character);
                     }
-
+                    
                     return stringBuilder.toString();
                 }
+                
+                incrementStacks();
             }
+        }
+        
+        private void incrementStacks() {
+            while (!mapEntryIteratorDeque.isEmpty() ||
+                    !mapEntryIteratorDeque.getLast().hasNext()) {
+                mapEntryIteratorDeque.removeLast();
+                characterDeque.removeLast();
+                nodeDeque.removeLast();
+            }
+            
+            if (mapEntryIteratorDeque.isEmpty()) {
+                return;
+            }
+            
+            Iterator<Map.Entry<Character, Node>> topmostIterator = 
+                    mapEntryIteratorDeque.getLast();
+            
+            Map.Entry<Character, Node> mapEntry = topmostIterator.next();
+            
+            characterDeque.removeLast();
+            characterDeque.addLast(mapEntry.getKey());
+            
+            nodeDeque.removeLast();
+            nodeDeque.addLast(mapEntry.getValue());
         }
         
         private void initializeStacks() {
@@ -247,6 +275,7 @@ public class PrefixTree implements Iterable<String> {
                 Map.Entry<Character, Node> mapEntry = iterator.next();
                 mapEntryIteratorDeque.addLast(iterator);
                 characterDeque.addLast(mapEntry.getKey());
+                nodeDeque.add(mapEntry.getValue());
                 node = mapEntry.getValue();
             }
         }
@@ -262,23 +291,22 @@ public class PrefixTree implements Iterable<String> {
                 return;
             }
             
-            
-            
             Map.Entry<Character, Node> mapEntry = 
                     mapEntryIteratorDeque.getLast().next();
             
-            if (mapEntry.getValue() == null) {
+            if (mapEntry.getValue() == null 
+                    || mapEntry.getValue().childMap == null) {
                 return;
             }
             
-            mapEntryIteratorDeque.add(
-                    mapEntry
-                            .getValue()
+            mapEntryIteratorDeque.addLast(
+                    mapEntry.getValue()
                             .childMap
                             .entrySet()
                             .iterator());
             
-            characterDeque.add(mapEntry.getKey());
+            characterDeque.addLast(mapEntry.getKey());
+            nodeDeque.addLast(mapEntry.getValue());
             
             Node node = mapEntry.getValue();
             
@@ -290,6 +318,12 @@ public class PrefixTree implements Iterable<String> {
                 mapEntryIteratorDeque.addLast(iterator);
                 characterDeque.addLast(mapEntry.getKey());
                 node = mapEntry.getValue();
+            }
+        }
+    
+        private void checkForComodification() {
+            if (PrefixTree.this.modCount != expectedModCount) {
+                throw new ConcurrentModificationException();
             }
         }
     }

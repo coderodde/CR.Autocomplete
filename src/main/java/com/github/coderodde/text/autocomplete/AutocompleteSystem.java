@@ -1,10 +1,10 @@
 package com.github.coderodde.text.autocomplete;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Set;
 
 /**
  * 
@@ -14,7 +14,7 @@ import java.util.TreeSet;
  */
 public class AutocompleteSystem implements Iterable<String> {
 
-    private final SortedSet<String> stringSet = new TreeSet<>();
+    private final Set<String> stringSet = new HashSet<>();
     
     public boolean add(String s) {
         return stringSet.add(s);
