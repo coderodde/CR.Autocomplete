@@ -187,6 +187,7 @@ public class PrefixTree implements Iterable<String> {
     private final class PrefixTreeIterator implements Iterator<String> {
 
         private int iterated;
+        private final Deque<Node> nodeDeque = new ArrayDeque<>();
         private final Deque<Character> characterDeque = new ArrayDeque<>();
         private final Deque<Iterator<Map.Entry<Character, Node>>> 
                 mapEntryIteratorDeque = new ArrayDeque<>();
@@ -236,11 +237,7 @@ public class PrefixTree implements Iterable<String> {
         private void initializeStacks() {
             Node node = root;
             
-            while (node != null) {
-                if (node.childMap == null) {
-                    return;
-                }
-                
+            while (node.childMap != null) {
                 Iterator<Map.Entry<Character, Node>> iterator = 
                         node
                         .childMap
@@ -264,6 +261,8 @@ public class PrefixTree implements Iterable<String> {
             if (mapEntryIteratorDeque.isEmpty()) {
                 return;
             }
+            
+            
             
             Map.Entry<Character, Node> mapEntry = 
                     mapEntryIteratorDeque.getLast().next();
