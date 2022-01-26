@@ -7,9 +7,9 @@ import java.util.Scanner;
 
 public class Demo {
     
-    private static final int NUMBER_OF_STRINGS_TO_GENERATE = 5_000_000;
-    private static final int MAXIMUM_STRING_LENGTH = 20;
-    private static final String AUTOCOMPLETE_STRING = "101";
+    private static final int NUMBER_OF_STRINGS_TO_GENERATE = 1_000_000;
+    private static final int MAXIMUM_STRING_LENGTH = 4;
+    private static final String AUTOCOMPLETE_STRING = "2";
 
     public static void main(String[] args) {
         if (args.length > 0 && args[0].trim().equals("benchmark")) {
@@ -74,6 +74,20 @@ public class Demo {
         if (printStatistics) {
             System.out.println("PrefixTree.add() in " + (end - start) + " ms.");
             System.out.println("PrefixTree.size() = " + prefixTree.size());
+        }
+        
+        start = System.currentTimeMillis();
+        
+        for (String s : prefixTree) {
+            
+        }
+        
+        end = System.currentTimeMillis();
+        prefixTreeDuration += end - start;
+        
+        if (printStatistics) {
+            System.out.println("PrefixTree.iterator() in " 
+                    + (end - start) + " ms.");
         }
         
         start = System.currentTimeMillis();
@@ -143,6 +157,20 @@ public class Demo {
             
             System.out.println("AutocompleteSystem.size() = " + 
                     autocompleteSystem.size());
+        }
+        
+        start = System.currentTimeMillis();
+        
+        for (String s : autocompleteSystem) {
+            
+        }
+        
+        end = System.currentTimeMillis();
+        autocompletionSystemDuration += end - start;
+        
+        if (printStatistics) {
+            System.out.println("AutocompleteSystem.iterator() in " 
+                    + (end - start) + " ms.");
         }
         
         start = System.currentTimeMillis();
@@ -256,7 +284,7 @@ public class Demo {
         StringBuilder sb = new StringBuilder(stringLength);
         
         for (int i = 0; i < stringLength; ++i) {
-            sb.append(random.nextBoolean() ? '0' : '1');
+            sb.append('0' + (char)(random.nextInt(10)));
         }
         
         return sb.toString();

@@ -1,6 +1,7 @@
 package com.github.coderodde.text.autocomplette;
 
 import com.github.coderodde.text.autocomplete.PrefixTree;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -173,43 +174,8 @@ public class PrefixTreeTest {
     }
     
     @Test
-    public void removeBug1() {
-        String[] strings = {"",
-                            "10",
-                            "1001",
-                            "000",
-                            "00",
-                            "111"};
-        
-        Set<String> set = new HashSet();
-        
-        for (String s : strings) {
-            pt.add(s);
-            set.add(s);
-        }
-        
-        System.out.println(pt.autocomplete(""));
-        
-        String[] queryStrings = {"",     // out.
-                                 "1",    // in.
-                                 "000",  // out. 
-                                 "1001", // out.
-                                 "1110", // in.
-                                 "10"};  // out.
-        
-        // Removes 00 also!
-        for (String s : queryStrings) {
-            pt.remove(s);
-            set.remove(s);
-        }
-        
-        System.out.println(pt.size());
-        System.out.println(pt.autocomplete(""));
-        System.out.println(set);
-    }
-    
-    @Test
     public void iterator() {
+        pt.add("");
         pt.add("0");
         pt.add("00");
         pt.add("01");
@@ -218,11 +184,22 @@ public class PrefixTreeTest {
         pt.add("011");
         
         Iterator<String> iter = pt.iterator();
+        List<String> list = new ArrayList<>();
         
         while (iter.hasNext()) {
-            System.out.println("yeah: " + iter.next());
+            list.add(iter.next());
         }
         
-        System.out.println();
+        Collections.sort(list);
+        
+        assertEquals("", list.get(0));
+        assertEquals("0", list.get(1));
+        assertEquals("00", list.get(2));
+        
+        assertEquals("000", list.get(3));
+        assertEquals("0001", list.get(4));
+        assertEquals("01", list.get(5));
+        assertEquals("011", list.get(6));
+        
     }
 }

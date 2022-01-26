@@ -194,13 +194,12 @@ public class PrefixTree implements Iterable<String> {
         private int iterated;
         private final int expectedModCount = PrefixTree.this.modCount;
         private final Deque<Node> nodeDeque = new ArrayDeque<>();
-        private final Deque<Character> characterDeque = new ArrayDeque<>();
-        private final Deque<Iterator<Map.Entry<Character, Node>>> 
-                mapEntryIteratorDeque = new ArrayDeque<>();
+        private final Map<Node, Character> nodeToCharMap = new HashMap<>();
+        private final StringBuilder stringBuilder = new StringBuilder();
         
         private PrefixTreeIterator() {
             if (!PrefixTree.this.isEmpty()) {
-                initializeStacks();
+                nodeDeque.addLast(PrefixTree.this.root);
             }
         }
         
@@ -218,107 +217,41 @@ public class PrefixTree implements Iterable<String> {
             }
             
             while (true) {
-                if (!mapEntryIteratorDeque.getLast().hasNext()) {
-                    completeStack();
-                }
-
-                Node node = nodeDeque.getLast();
+                Node node = nodeDeque.removeFirst();
                 
                 if (node.representsString) {
-                    StringBuilder stringBuilder = new StringBuilder();
-                    
-                    for (Character character : characterDeque) {
-                        stringBuilder.append(character);
-                    }
-                    
-                    return stringBuilder.toString();
+                    String string = buildString(node);
+                    expand(node);
+                    iterated++;
+                    return string;
                 }
                 
-                incrementStacks();
+                expand(node);
             }
         }
         
-        private void incrementStacks() {
-            while (!mapEntryIteratorDeque.isEmpty() ||
-                    !mapEntryIteratorDeque.getLast().hasNext()) {
-                mapEntryIteratorDeque.removeLast();
-                characterDeque.removeLast();
-                nodeDeque.removeLast();
-            }
-            
-            if (mapEntryIteratorDeque.isEmpty()) {
+        private void expand(Node node) {
+            if (node.childMap == null) {
                 return;
             }
             
-            Iterator<Map.Entry<Character, Node>> topmostIterator = 
-                    mapEntryIteratorDeque.getLast();
-            
-            Map.Entry<Character, Node> mapEntry = topmostIterator.next();
-            
-            characterDeque.removeLast();
-            characterDeque.addLast(mapEntry.getKey());
-            
-            nodeDeque.removeLast();
-            nodeDeque.addLast(mapEntry.getValue());
-        }
-        
-        private void initializeStacks() {
-            Node node = root;
-            
-            while (node.childMap != null) {
-                Iterator<Map.Entry<Character, Node>> iterator = 
-                        node
-                        .childMap
-                        .entrySet()
-                        .iterator();
-                
-                Map.Entry<Character, Node> mapEntry = iterator.next();
-                mapEntryIteratorDeque.addLast(iterator);
-                characterDeque.addLast(mapEntry.getKey());
-                nodeDeque.add(mapEntry.getValue());
-                node = mapEntry.getValue();
+            for (Map.Entry<Character, Node> mapEntry :
+                    node.childMap.entrySet()) {
+                nodeDeque.addLast(mapEntry.getValue());
+                nodeToCharMap.put(mapEntry.getValue(), mapEntry.getKey());
             }
         }
         
-        private void completeStack() {
-            while (!mapEntryIteratorDeque.isEmpty() 
-                    && !mapEntryIteratorDeque.getLast().hasNext()) {
-                mapEntryIteratorDeque.removeLast();
-                characterDeque.removeLast();
+        private String buildString(Node node) {
+            while (node != null && node != PrefixTree.this.root) {
+                char ch = nodeToCharMap.get(node);
+                stringBuilder.append(ch);
+                node = node.parent;
             }
             
-            if (mapEntryIteratorDeque.isEmpty()) {
-                return;
-            }
-            
-            Map.Entry<Character, Node> mapEntry = 
-                    mapEntryIteratorDeque.getLast().next();
-            
-            if (mapEntry.getValue() == null 
-                    || mapEntry.getValue().childMap == null) {
-                return;
-            }
-            
-            mapEntryIteratorDeque.addLast(
-                    mapEntry.getValue()
-                            .childMap
-                            .entrySet()
-                            .iterator());
-            
-            characterDeque.addLast(mapEntry.getKey());
-            nodeDeque.addLast(mapEntry.getValue());
-            
-            Node node = mapEntry.getValue();
-            
-            while (node.childMap != null) {
-                Iterator<Map.Entry<Character, Node>> iterator = 
-                        node.childMap.entrySet().iterator();
-                
-                mapEntry = iterator.next();
-                mapEntryIteratorDeque.addLast(iterator);
-                characterDeque.addLast(mapEntry.getKey());
-                node = mapEntry.getValue();
-            }
+            String string = stringBuilder.reverse().toString();
+            stringBuilder.delete(0, stringBuilder.length());
+            return string;
         }
     
         private void checkForComodification() {
