@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * This class implements a simple autocomplete system relying on a 
+ * {@link java.util.HashSet} of strings.
  * 
  * @author Rodion "rodde" Efremov
- * @version 1.6 ()
- * @since 1.6 ()
+ * @version 1.6 (Jan 26, 2022)
+ * @since 1.6 (Jan 26, 2022)
  */
 public class AutocompleteSystem implements Iterable<String> {
 

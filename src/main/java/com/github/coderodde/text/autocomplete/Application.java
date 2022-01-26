@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Objects;
 
 /**
+ * This class implements the internal state of the demonstration program for the
+ * prefix tree vs. {@link java.util.HashSet}.
  * 
  * @author Rodion "rodde" Efremov
- * @version 1.6 ()
- * @since 1.6 ()
+ * @version 1.6 (Jan 26, 2022)
+ * @since 1.6 (Jan 26, 2022)
  */
 public class Application {
 
@@ -77,12 +79,12 @@ public class Application {
         assert tokens.length == 1;
         
         switch (tokens[0]) {
-            case CommandNames.PRINT:
+            case CommandNames.PRINT -> {
                 printAll();
                 return;
+            }
                 
-            default:
-                throw new IllegalArgumentException(
+            default -> throw new IllegalArgumentException(
                     "Unknown command: " + String.join(" ", tokens));
         }
     }

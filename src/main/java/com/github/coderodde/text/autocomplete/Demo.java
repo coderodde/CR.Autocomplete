@@ -7,9 +7,9 @@ import java.util.Scanner;
 
 public class Demo {
     
-    private static final int NUMBER_OF_STRINGS_TO_GENERATE = 1_000_000;
-    private static final int MAXIMUM_STRING_LENGTH = 4;
-    private static final String AUTOCOMPLETE_STRING = "2";
+    private static final int NUMBER_OF_STRINGS_TO_GENERATE = 500_000;
+    private static final int MAXIMUM_STRING_LENGTH = 5;
+    private static final String AUTOCOMPLETE_STRING = "5";
 
     public static void main(String[] args) {
         if (args.length > 0 && args[0].trim().equals("benchmark")) {
